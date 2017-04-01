@@ -1,5 +1,5 @@
 #' @export
-frequency_filter <- function(data, log=FALSE, base = exp(1), min.types=5, drop.zeros=log, debug = FALSE){
+frequency_filter <- function(data, log=TRUE, base = exp(1), min.types=5, drop.zeros=log, debug = FALSE){
   if(drop.zeros){
     # only keep observations with freq of at least 1 for both chi and adu
     data <- filter(data, chi.count > 0 & adu.count > 0)
