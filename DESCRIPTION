@@ -4,10 +4,12 @@ Title: The Frequency Filter
 Version: 0.1.0
 Author: Rose M. Hartman
 Maintainer: Rose M. Hartman <rosemhartman@gmail.com>
-Description: The Frequency Filter, for identifying and exploring patterns
-in child speech that cannot be explained by the corresponding frequencies in child-directed speech.
-It allows researchers to simultaneously control for and combine language data from the child, the caregiver,
-multiple languages, and across multiple time points to make inferences
-about what might be driving the shape of development.
+Description: The Frequency Filter, for identifying and exploring patterns in
+    child speech that cannot be explained by the corresponding frequencies in child-
+    directed speech. It allows researchers to simultaneously control for and combine
+    language data from the child, the caregiver, multiple languages, and across
+    multiple time points to make inferences about what might be driving the shape of
+    development.
 License: MIT
 LazyData: TRUE
+RoxygenNote: 5.0.1
