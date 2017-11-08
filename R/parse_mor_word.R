@@ -1,3 +1,5 @@
+#' Extract information from %mor tier words in CHAT transcripts
+#'
 #' @export
 parse_mor_word <- function(mor_word, extract = c("POS", "word", "gloss")){
   

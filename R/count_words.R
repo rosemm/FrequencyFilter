@@ -1,3 +1,6 @@
+#' Count words in child and adult speech
+#'
+#' @export
 count_words <- function(this.transcript, use.mor = TRUE, POS_regex=NULL, mor = "mor_word", orth = "orth_word", debug=FALSE){
   stopifnot(length(unique(this.transcript$file)) == 1)
   if(debug) message("processing... ", unique(this.transcript$file))
