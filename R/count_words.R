@@ -10,8 +10,8 @@
 #' @param this.transcript a dataframe with all words from the utterances from one transcript (or one timepoint, if transcripts from roughly the same age are being pooled together)
 #' @param use.mor whether or not to count occurrences separately by part of speech
 #' @param POS_regex if use.mor=TRUE, optionally collapse part of speech categories using regular expressions here
-#' @param mor the column that contains the MOR tier entries
-#' @param orth the column that contains the speaker tier entries
+#' @param mor_word the column that contains the MOR tier entries
+#' @param orth_word the column that contains the speaker tier entries
 #' @param debug turn on to display extra messages while the function runs, useful for identifying problem transcripts. Default is FALSE.
 #'
 #' @return A dataframe with word (from the speaker tier), gloss and POS (extracted from the mor tier), and counts from target child and target child's primary adult interlocutor.
@@ -36,14 +36,18 @@
 #' @seealso \code{\link[FrequencyFilter]{utts_to_words}}
 #'
 #' @export
-count_words <- function(this.transcript, use.mor = TRUE, POS_regex=NULL, mor = "mor_word", orth = "orth_word", debug=FALSE){
+count_words <- function(this.transcript, use.mor = TRUE, POS_regex=NULL, mor_word = "mor_word", orth_word = "orth_word", debug=FALSE){
   stopifnot(length(unique(this.transcript$file)) == 1)
   if(debug) message("processing... ", unique(this.transcript$file))
 
+  # for use in dplyr functions below (see vignette("programming") in the dplyr package)
+  mor_word <- enquo(mor_word)
+  orth_word <- enquo(orth_word)
+
   # select columns to be used for mor_word and orth_word
   # (default is to use those names to begin with, in which case no change in column names occurs)
-  colnames(this.transcript) <- gsub(x=colnames(this.transcript), pattern = mor,  replacement = "mor_word")
-  colnames(this.transcript) <- gsub(x=colnames(this.transcript), pattern = orth, replacement = "orth_word")
+  this.transcript <- this.transcript %>%
+    rename(mor_word = !!mor_word, orth_word = !!orth_word)
 
   if(use.mor & length(na.omit(this.transcript$mor_word)) == 0){
     message("No mor information available for ", unique(this.transcript$file), ". Setting use.mor = FALSE")
