@@ -3,3 +3,4 @@
 export(bin_ages)
 export(frequency_filter)
 export(get_counts)
+export(parse_mor_word)
