@@ -1,23 +1,42 @@
 #' @export
-frequency_filter <- function(data, log=TRUE, base = exp(1), min.types=5, drop.zeros=log, debug = FALSE){
+frequency_filter <- function(data_input, log=TRUE, base = exp(1), min.types=200, drop.zeros=log, outlier_cutoff=1, debug = FALSE){
+  if(debug) message(unique(data_input$id))
+  
+  # For each word, get sum of chi counts and adu counts.
+  # Note that in most cases, this will already be accomplished, 
+  # but words that have more than one gloss used at different points in the transcription
+  # may have separate counts. This ensures that cases like that are properly collapsed.
+  data <- data_input %>% 
+    dplyr::select(word, chi.count, adu.count) %>% 
+    group_by(word) %>%
+    summarise(chi.count = sum(chi.count), 
+              adu.count = sum(adu.count))
+  
   if(drop.zeros){
     # only keep observations with freq of at least 1 for both chi and adu
-    data <- filter(data, chi.count > 0 & adu.count > 0)
+    data <- data %>% 
+      dplyr::filter(chi.count > 0 & adu.count > 0) 
   }
-
-  if(debug) message(unique(data$id))
 
   class(data) <- "data.frame"
 
   row.names(data) <- data$word
 
-  if(log){ # to log transform the counts before calculating the correlation
-    data$chi.count <- log(data$chi.count, base = base)
-    data$adu.count <- log(data$adu.count, base = base)
+  # to log transform the counts before calculating the correlation
+  if(log){ 
+    if(drop.zeros){
+      data$chi.count <- log(data$chi.count, base = base)
+      data$adu.count <- log(data$adu.count, base = base)
+    } else {
+      # if zeros are NOT to be dropped, then use log(x + 1) instead of log(x)
+      data$chi.count <- log1p(data$chi.count)
+      data$adu.count <- log1p(data$adu.count)
+    }
   }
+  
   if(nrow(data) > min.types){
 
-    r <- cor(chi.count ~ adu.count, data=data, method = "pearson")
+    r <- cor(data$chi.count, data$adu.count, method = "pearson")
 
     # calculate regression coefs
     model <- lm(chi.count ~ adu.count, data=data)
@@ -31,6 +50,7 @@ frequency_filter <- function(data, log=TRUE, base = exp(1), min.types=5, drop.ze
 
     resids <- resid(model)
     zresids <- scale(resids)
+    preds <- predict(model)
 
     cis <- predict.lm(model, interval = "confidence", level = 0.95)
 
@@ -42,11 +62,12 @@ frequency_filter <- function(data, log=TRUE, base = exp(1), min.types=5, drop.ze
                      df.res=df.res,
                      r=r,
                      Rsq=Rsq,
+                     pred=preds,
                      resid=resids,
-                     zresid = zresids)
+                     zresid = zresids, stringsAsFactors = FALSE)
     lm <- cbind(lm, cis)
   } else {
-    lm <- data.frame(word=NA,
+    lm <- data.frame(word=NA_character_,
                      b0.est=NA,
                      b1.est=NA,
                      b0.se=NA,
@@ -54,11 +75,20 @@ frequency_filter <- function(data, log=TRUE, base = exp(1), min.types=5, drop.ze
                      df.res=NA,
                      r=NA,
                      Rsq=NA,
+                     pred=NA,
                      resid=NA,
                      zresid=NA,
                      fit=NA,
                      lwr=NA,
-                     upr=NA)
+                     upr=NA, stringsAsFactors = FALSE)
   }
-  return(lm)
+  data <- dplyr::left_join(data_input, lm, by="word")
+  
+  # define outliers
+  data$zoutlier <- with(data, 
+                        ifelse(zresid < - outlier_cutoff, "low",
+                               ifelse(zresid > outlier_cutoff, "high",
+                                      ifelse(zresid >= -outlier_cutoff & zresid <= outlier_cutoff, "no",
+                                             NA))))
+  return(data)
 }
