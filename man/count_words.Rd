@@ -7,7 +7,49 @@
 count_words(this.transcript, use.mor = TRUE, POS_regex = NULL,
   mor = "mor_word", orth = "orth_word", debug = FALSE)
 }
+\arguments{
+\item{this.transcript}{a dataframe with all words from the utterances from one transcript (or one timepoint, if transcripts from roughly the same age are being pooled together)}
+
+\item{use.mor}{whether or not to count occurrences separately by part of speech}
+
+\item{POS_regex}{if use.mor=TRUE, optionally collapse part of speech categories using regular expressions here}
+
+\item{mor}{the column that contains the MOR tier entries}
+
+\item{orth}{the column that contains the speaker tier entries}
+
+\item{debug}{turn on to display extra messages while the function runs, useful for identifying problem transcripts. Default is FALSE.}
+}
+\value{
+A dataframe with word (from the speaker tier), gloss and POS (extracted from the mor tier), and counts from target child and target child's primary adult interlocutor.
+To count the words for several transcripts, count_words can be placed in side a for loop or do expression.
+}
 \description{
-Count words in child and adult speech
+Counts the number of occurrences of each word in the target child's speech and that of the child's primary interlocutor
+Optionally distinguish counts of eah word by part of speech by setting use.mor=TRUE (e.g. count "kiss" as a verb and "kiss" as a noun separately).
+It makes used of the part of speech tagging available in the MOR tier of CHAT transcribed files, but if desired one can
+further collapse those part of speech categories using the POS_regex argument, which will replace MOR part of speech
+with the user-specified labels. This is useful if, for example, one wants to count occurrences of words separately by
+broad part of speech category but not as fine-grained as MOR tags (e.g. count "kiss" as a noun separately from "kiss" as a verb, but collapse categories for child forms, family words and wordplay so that "beep" isn't counted separately for each.)
+}
+\examples{
+\dontrun{
+words.mor <- transcripts.cleaned \%>\%
+group_by(language, corpus, child, age.mos, file, cha, speaker, name, role, utt.num) \%>\%
+  do({
+    utts_to_words(., debug = FALSE)
+  }) \%>\%
+  ungroup()
+
+word.counts.mor <- words.mor \%>\%
+group_by(language, corpus, child, age.mos, file, cha) \%>\%
+  do({
+    count_words(., use.mor = TRUE, POS_regex=NULL, debug = FALSE)
+  })
+}
+
+}
+\seealso{
+\code{\link[FrequencyFilter]{utts_to_words}}
 }
 
