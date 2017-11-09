@@ -13,6 +13,4 @@ Run the following commands in R to download the Frequency Filter functions as a 
 ```
 devtools::install_github("rosemm/FrequencyFilter")
 library(FrequencyFilter)
-```
-
-Please note that this package is in progress still, and more documentation is forthcoming. 
+``` 
